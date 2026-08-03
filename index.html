@@ -144,43 +144,59 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.9);
             background: #0a0a0a;
         }
-        .controls {
+        /* GRID DE CONTROLES: 3 colunas, 2 linhas */
+        .controls-grid {
             margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .control-item {
             display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+            align-items: stretch;
+        }
+        .control-item label {
+            font-size: 12px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .control-item .row {
+            display: flex;
+            gap: 6px;
             align-items: center;
         }
-        .controls .group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .controls .group input[type="text"] {
-            padding: 10px 16px;
+        .control-item .row input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
             border: none;
-            border-radius: 40px;
+            border-radius: 30px;
             background: #2a2a2a;
             color: #fff;
-            font-size: 14px;
-            width: 180px;
+            font-size: 13px;
             outline: 1px solid #444;
+            min-width: 0;
         }
-        .controls .group input[type="text"]:focus {
-            outline-color: #25d366;
+        .control-item .row input[type="text"]:focus {
+            outline-color: #f5c842;
         }
-        .controls .group button {
-            padding: 10px 18px;
+        .control-item .row button {
+            padding: 8px 14px;
             border: none;
-            border-radius: 40px;
+            border-radius: 30px;
             font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
             transition: 0.2s;
+            white-space: nowrap;
         }
-        .controls .group button:hover {
-            transform: scale(1.02);
+        .control-item .row button:hover {
+            transform: scale(1.03);
         }
         .btn-whatsapp {
             background: #25d366;
@@ -196,18 +212,66 @@
         .btn-logo:hover {
             background: #5a52d5;
         }
+        .btn-mosaico {
+            background: #ff6584;
+            color: #fff;
+        }
+        .btn-mosaico:hover {
+            background: #e05a75;
+        }
+        .btn-mosaico.active {
+            background: #ffd700;
+            color: #111;
+        }
+        .btn-msg {
+            background: #00bcd4;
+            color: #fff;
+        }
+        .btn-msg:hover {
+            background: #0097a7;
+        }
+        .btn-msg.limpar {
+            background: #ff5252;
+        }
+        .btn-msg.limpar:hover {
+            background: #d32f2f;
+        }
         .btn-download {
             background: #f5c842;
             color: #111;
             font-weight: 700;
-            padding: 12px 30px;
+            padding: 10px 30px;
             border: none;
             border-radius: 40px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
+            transition: 0.2s;
+            justify-self: center;
+            grid-column: 1 / -1;
+            margin-top: 6px;
         }
         .btn-download:hover {
             background: #e0b031;
+            transform: scale(1.02);
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .status-text {
+            font-size: 11px;
+            color: #888;
+            padding-left: 4px;
         }
         .footer {
             margin-top: 20px;
@@ -222,8 +286,19 @@
             background: #f5c842;
             border-radius: 10px;
         }
-        #fileInput {
-            display: none;
+        /* Responsivo */
+        @media (max-width: 700px) {
+            .controls-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .btn-download {
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 480px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -247,32 +322,70 @@
         <div class="banner-preview">
             <canvas id="bannerCanvas" width="1200" height="675"></canvas>
 
-            <div class="controls">
-                <!-- Grupo WhatsApp -->
-                <div class="group">
-                    <input type="text" id="whatsappInput" placeholder="(11) 99999-9999" />
-                    <button class="btn-whatsapp" id="addWhatsappBtn">📱 Adicionar</button>
+            <!-- Controles em grade 3x2 -->
+            <div class="controls-grid">
+                <!-- Coluna 1: WhatsApp -->
+                <div class="control-item">
+                    <label>WhatsApp</label>
+                    <div class="row">
+                        <input type="text" id="whatsappInput" placeholder="(11) 99999-9999" />
+                        <button class="btn-whatsapp" id="addWhatsappBtn">Adicionar</button>
+                    </div>
                 </div>
 
-                <!-- Grupo Logo -->
-                <div class="group">
-                    <button class="btn-logo" id="loadLogoBtn">🖼️ Carregar Logo</button>
-                    <input type="file" id="fileInput" accept="image/*" />
+                <!-- Coluna 2: Logo -->
+                <div class="control-item">
+                    <label>Logo</label>
+                    <div class="row">
+                        <button class="btn-logo" id="loadLogoBtn">🖼️ Carregar</button>
+                        <span class="status-text" id="logoStatus">Nenhuma</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" />
                 </div>
 
-                <!-- Download -->
+                <!-- Coluna 3: Mosaico -->
+                <div class="control-item">
+                    <label>Mosaico</label>
+                    <div class="row">
+                        <button class="btn-mosaico" id="toggleMosaicoBtn">🔲 Ativar</button>
+                        <span class="status-text" id="mosaicoStatus">Desativado</span>
+                    </div>
+                </div>
+
+                <!-- Coluna 1 (linha 2): (vazio ou adicional) -->
+                <div class="control-item">
+                    <label>&nbsp;</label>
+                    <div class="row">
+                        <!-- Espaço reservado -->
+                    </div>
+                </div>
+
+                <!-- Coluna 2 (linha 2): (vazio) -->
+                <div class="control-item">
+                    <label>&nbsp;</label>
+                    <div class="row">
+                        <!-- Espaço reservado -->
+                    </div>
+                </div>
+
+                <!-- Coluna 3 (linha 2): Mensagem Personalizada -->
+                <div class="control-item">
+                    <label>Mensagem</label>
+                    <div class="row">
+                        <input type="text" id="msgInput" placeholder="Digite sua mensagem..." />
+                        <button class="btn-msg" id="addMsgBtn">Adicionar</button>
+                        <button class="btn-msg limpar" id="clearMsgBtn" style="display:none;">✕</button>
+                    </div>
+                </div>
+
+                <!-- Botão Download ocupa toda a largura -->
                 <button class="btn-download" id="downloadBtn">⬇️ Baixar Banner</button>
             </div>
         </div>
-        <div class="footer">Banner gerado com dados do TVmaze • Logo removendo fundo automaticamente</div>
+        <div class="footer">Banner gerado com dados do TVmaze • Logo com fundo removido • Mosaico opcional • Mensagem personalizada</div>
     </div>
 
     <script>
-        // ============================================================
-        //   CONFIGURAÇÕES
-        // ============================================================
-        const LOGO_URL = ''; // Não usado mais, pois carregamos do dispositivo
-
         // ============================================================
         //   ELEMENTOS DO DOM
         // ============================================================
@@ -286,18 +399,28 @@
         const addWhatsappBtn = document.getElementById('addWhatsappBtn');
         const loadLogoBtn = document.getElementById('loadLogoBtn');
         const fileInput = document.getElementById('fileInput');
+        const toggleMosaicoBtn = document.getElementById('toggleMosaicoBtn');
+        const msgInput = document.getElementById('msgInput');
+        const addMsgBtn = document.getElementById('addMsgBtn');
+        const clearMsgBtn = document.getElementById('clearMsgBtn');
+        const logoStatus = document.getElementById('logoStatus');
+        const mosaicoStatus = document.getElementById('mosaicoStatus');
 
-        // Dados do banner atual
+        // ============================================================
+        //   DADOS DO BANNER
+        // ============================================================
         let bannerData = {
             title: 'Título do Filme',
             year: '2024',
             genres: ['Ação', 'Aventura'],
             summary: 'Sinopse do filme...',
             imageUrl: null,
-            image: null,          // Imagem do show (fundo)
+            image: null,
             whatsapp: '',
-            logoImage: null,      // Imagem da logo (com fundo removido)
-            logoLoaded: false
+            logoImage: null,
+            logoLoaded: false,
+            mosaicoAtivo: false,
+            mensagemPersonalizada: null // se preenchido, substitui a sinopse
         };
 
         // ============================================================
@@ -352,6 +475,8 @@
             bannerData.year = show.premiered ? show.premiered.split('-')[0] : 'Ano';
             bannerData.genres = show.genres && show.genres.length ? show.genres : ['Gênero'];
             bannerData.summary = show.summary ? show.summary.replace(/<[^>]*>/g, '') : 'Sinopse não disponível.';
+            // Se houver mensagem personalizada, não sobrescrever a sinopse, mas manter a mensagem
+            // A sinopse original fica guardada, mas a exibição usa a mensagem se existir
             bannerData.imageUrl = show.image?.original || show.image?.medium || null;
 
             if (bannerData.imageUrl) {
@@ -373,7 +498,7 @@
         }
 
         // ============================================================
-        //   REMOÇÃO DE FUNDO DA LOGO (baseada na cor do pixel (0,0))
+        //   REMOÇÃO DE FUNDO DA LOGO
         // ============================================================
         function removerFundo(image, threshold = 30) {
             const offscreen = document.createElement('canvas');
@@ -384,43 +509,38 @@
 
             const imageData = offCtx.getImageData(0, 0, offscreen.width, offscreen.height);
             const data = imageData.data;
-
-            // Pega a cor do pixel (0,0) como referência
             const refR = data[0];
             const refG = data[1];
             const refB = data[2];
 
-            // Percorre todos os pixels
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i + 1];
                 const b = data[i + 2];
-                // Distância euclidiana
                 const dist = Math.sqrt((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2);
                 if (dist < threshold) {
-                    data[i + 3] = 0; // torna transparente
+                    data[i + 3] = 0;
                 }
             }
-
             offCtx.putImageData(imageData, 0, 0);
-            return offscreen; // retorna canvas com fundo transparente
+            return offscreen;
         }
 
         // ============================================================
-        //   CARREGAR LOGO DO DISPOSITIVO
+        //   CARREGAR LOGO
         // ============================================================
         function carregarLogo(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    // Remove o fundo
                     const canvasSemFundo = removerFundo(img);
-                    // Cria uma imagem a partir do canvas
                     const logoImg = new Image();
                     logoImg.onload = () => {
                         bannerData.logoImage = logoImg;
                         bannerData.logoLoaded = true;
+                        logoStatus.textContent = 'Carregada ✓';
+                        logoStatus.style.color = '#6c63ff';
                         desenharBanner();
                     };
                     logoImg.src = canvasSemFundo.toDataURL('image/png');
@@ -434,10 +554,10 @@
         //   DESENHAR O BANNER
         // ============================================================
         function desenharBanner() {
-            const w = canvas.width;   // 1200
-            const h = canvas.height;  // 675
+            const w = canvas.width;
+            const h = canvas.height;
 
-            // Fundo escuro gradiente
+            // --- Fundo ---
             const grad = ctx.createLinearGradient(0, 0, w, h);
             grad.addColorStop(0, '#1a1a2e');
             grad.addColorStop(0.5, '#16213e');
@@ -445,15 +565,44 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, w, h);
 
-            // Borda dourada
+            // --- MOSAICO ---
+            if (bannerData.mosaicoAtivo && bannerData.logoLoaded && bannerData.logoImage) {
+                const logo = bannerData.logoImage;
+                const baseSize = 70;
+                const spacingX = 100;
+                const spacingY = 100;
+                const cols = Math.ceil(w / spacingX) + 2;
+                const rows = Math.ceil(h / spacingY) + 2;
+
+                ctx.save();
+                ctx.globalAlpha = 0.25;
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * spacingX - 30;
+                        const y = j * spacingY - 30;
+                        const scale = 0.6 + Math.random() * 0.6;
+                        const size = baseSize * scale;
+                        const ratio = logo.width / logo.height;
+                        let drawW = size;
+                        let drawH = size / ratio;
+                        if (drawH > size) {
+                            drawH = size;
+                            drawW = size * ratio;
+                        }
+                        ctx.drawImage(logo, x, y, drawW, drawH);
+                    }
+                }
+                ctx.restore();
+            }
+
+            // --- Borda dourada ---
             ctx.strokeStyle = '#f5c842';
             ctx.lineWidth = 6;
             ctx.strokeRect(10, 10, w - 20, h - 20);
 
-            // --- LOGO (canto superior esquerdo) ---
+            // --- LOGO OFICIAL (canto superior esquerdo) ---
             if (bannerData.logoLoaded && bannerData.logoImage) {
                 const logo = bannerData.logoImage;
-                // Redimensionar mantendo proporção: altura máxima 80px
                 const maxH = 80;
                 const ratio = logo.width / logo.height;
                 let drawW, drawH;
@@ -464,7 +613,6 @@
                     drawW = logo.width;
                     drawH = logo.height;
                 }
-                // Posição
                 const x = 30;
                 const y = 20;
                 ctx.shadowColor = 'rgba(0,0,0,0.7)';
@@ -472,7 +620,6 @@
                 ctx.drawImage(logo, x, y, drawW, drawH);
                 ctx.shadowBlur = 0;
             } else {
-                // Texto padrão caso não haja logo
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.7)';
                 ctx.shadowBlur = 16;
@@ -480,7 +627,6 @@
                 ctx.fillStyle = '#f5c842';
                 ctx.fillText('📺 tvnovajuarez', 30, 70);
                 ctx.restore();
-                // Linha decorativa
                 ctx.strokeStyle = '#f5c842';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -535,14 +681,19 @@
             const genresText = bannerData.genres && bannerData.genres.length ? bannerData.genres.join(' • ') : 'Gênero';
             ctx.fillText(`${yearText}  •  ${genresText}`, titleX, titleY + 60);
 
-            // --- SINOPSE ---
+            // --- SINOPSE ou MENSAGEM PERSONALIZADA ---
             ctx.shadowBlur = 8;
             ctx.font = '22px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = '#cccccc';
-            let sinopse = bannerData.summary || 'Sinopse não disponível.';
-            if (sinopse.length > 180) sinopse = sinopse.substring(0, 177) + '…';
+            let textoExibicao = bannerData.mensagemPersonalizada || bannerData.summary || 'Sinopse não disponível.';
+            if (bannerData.mensagemPersonalizada) {
+                // Estilo diferente para destacar a mensagem personalizada
+                ctx.fillStyle = '#ffd700'; // dourado
+                ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
+            }
+            if (textoExibicao.length > 180) textoExibicao = textoExibicao.substring(0, 177) + '…';
             const maxWidth = 600;
-            const lines = quebrarTexto(ctx, sinopse, maxWidth);
+            const lines = quebrarTexto(ctx, textoExibicao, maxWidth);
             let lineY = titleY + 120;
             lines.forEach(line => {
                 ctx.fillText(line, titleX, lineY);
@@ -596,7 +747,7 @@
         }
 
         // ============================================================
-        //   ADICIONAR WHATSAPP
+        //   WHATSAPP
         // ============================================================
         function adicionarWhatsapp() {
             const numero = whatsappInput.value.trim();
@@ -607,6 +758,41 @@
             bannerData.whatsapp = numero;
             desenharBanner();
             whatsappInput.value = '';
+        }
+
+        // ============================================================
+        //   MOSAICO
+        // ============================================================
+        function toggleMosaico() {
+            bannerData.mosaicoAtivo = !bannerData.mosaicoAtivo;
+            toggleMosaicoBtn.classList.toggle('active', bannerData.mosaicoAtivo);
+            toggleMosaicoBtn.textContent = bannerData.mosaicoAtivo ? '✅ Ativo' : '🔲 Ativar';
+            mosaicoStatus.textContent = bannerData.mosaicoAtivo ? 'Ativado' : 'Desativado';
+            mosaicoStatus.style.color = bannerData.mosaicoAtivo ? '#ffd700' : '#888';
+            desenharBanner();
+        }
+
+        // ============================================================
+        //   MENSAGEM PERSONALIZADA
+        // ============================================================
+        function adicionarMensagem() {
+            const texto = msgInput.value.trim();
+            if (!texto) {
+                alert('Digite uma mensagem.');
+                return;
+            }
+            bannerData.mensagemPersonalizada = texto;
+            addMsgBtn.textContent = 'Alterar';
+            clearMsgBtn.style.display = 'inline-block';
+            desenharBanner();
+            msgInput.value = '';
+        }
+
+        function limparMensagem() {
+            bannerData.mensagemPersonalizada = null;
+            addMsgBtn.textContent = 'Adicionar';
+            clearMsgBtn.style.display = 'none';
+            desenharBanner();
         }
 
         // ============================================================
@@ -636,16 +822,21 @@
         addWhatsappBtn.addEventListener('click', adicionarWhatsapp);
         downloadBtn.addEventListener('click', baixarBanner);
 
-        // Carregar logo
-        loadLogoBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
+        loadLogoBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 carregarLogo(e.target.files[0]);
-                fileInput.value = ''; // permite carregar novamente
+                fileInput.value = '';
             }
+        });
+
+        toggleMosaicoBtn.addEventListener('click', toggleMosaico);
+
+        addMsgBtn.addEventListener('click', adicionarMensagem);
+        clearMsgBtn.addEventListener('click', limparMensagem);
+
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adicionarMensagem();
         });
 
         // ============================================================
