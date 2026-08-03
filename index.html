@@ -223,6 +223,17 @@
             background: #ffd700;
             color: #111;
         }
+        .btn-fundo {
+            background: #00bcd4;
+            color: #fff;
+        }
+        .btn-fundo:hover {
+            background: #0097a7;
+        }
+        .btn-fundo.active {
+            background: #ffd700;
+            color: #111;
+        }
         .btn-msg {
             background: #00bcd4;
             color: #fff;
@@ -352,11 +363,12 @@
                     </div>
                 </div>
 
-                <!-- Coluna 1 (linha 2): (vazio ou adicional) -->
+                <!-- Coluna 1 (linha 2): Fundo Imagem -->
                 <div class="control-item">
-                    <label>&nbsp;</label>
+                    <label>Fundo Imagem</label>
                     <div class="row">
-                        <!-- Espaço reservado -->
+                        <button class="btn-fundo" id="toggleFundoBtn">🌄 Ativar</button>
+                        <span class="status-text" id="fundoStatus">Desativado</span>
                     </div>
                 </div>
 
@@ -382,7 +394,7 @@
                 <button class="btn-download" id="downloadBtn">⬇️ Baixar Banner</button>
             </div>
         </div>
-        <div class="footer">Banner gerado com dados do TVmaze • Logo com fundo removido • Mosaico opcional • Mensagem personalizada</div>
+        <div class="footer">Banner gerado com dados do TVmaze • Logo com fundo removido • Mosaico • Fundo com imagem • Mensagem personalizada</div>
     </div>
 
     <script>
@@ -400,11 +412,13 @@
         const loadLogoBtn = document.getElementById('loadLogoBtn');
         const fileInput = document.getElementById('fileInput');
         const toggleMosaicoBtn = document.getElementById('toggleMosaicoBtn');
+        const toggleFundoBtn = document.getElementById('toggleFundoBtn');
         const msgInput = document.getElementById('msgInput');
         const addMsgBtn = document.getElementById('addMsgBtn');
         const clearMsgBtn = document.getElementById('clearMsgBtn');
         const logoStatus = document.getElementById('logoStatus');
         const mosaicoStatus = document.getElementById('mosaicoStatus');
+        const fundoStatus = document.getElementById('fundoStatus');
 
         // ============================================================
         //   DADOS DO BANNER
@@ -420,7 +434,8 @@
             logoImage: null,
             logoLoaded: false,
             mosaicoAtivo: false,
-            mensagemPersonalizada: null // se preenchido, substitui a sinopse
+            fundoImagemAtivo: false,
+            mensagemPersonalizada: null
         };
 
         // ============================================================
@@ -475,8 +490,6 @@
             bannerData.year = show.premiered ? show.premiered.split('-')[0] : 'Ano';
             bannerData.genres = show.genres && show.genres.length ? show.genres : ['Gênero'];
             bannerData.summary = show.summary ? show.summary.replace(/<[^>]*>/g, '') : 'Sinopse não disponível.';
-            // Se houver mensagem personalizada, não sobrescrever a sinopse, mas manter a mensagem
-            // A sinopse original fica guardada, mas a exibição usa a mensagem se existir
             bannerData.imageUrl = show.image?.original || show.image?.medium || null;
 
             if (bannerData.imageUrl) {
@@ -557,15 +570,29 @@
             const w = canvas.width;
             const h = canvas.height;
 
-            // --- Fundo ---
-            const grad = ctx.createLinearGradient(0, 0, w, h);
-            grad.addColorStop(0, '#1a1a2e');
-            grad.addColorStop(0.5, '#16213e');
-            grad.addColorStop(1, '#0f0f1f');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, w, h);
+            // --- FUNDO: gradiente ou imagem ---
+            if (bannerData.fundoImagemAtivo && bannerData.image) {
+                // Desenha a imagem esticada com opacidade e desfoque
+                ctx.save();
+                // Aplicar desfoque (blur) no canvas
+                ctx.filter = 'blur(10px)';
+                ctx.globalAlpha = 0.4;
+                ctx.drawImage(bannerData.image, 0, 0, w, h);
+                ctx.restore();
+                // Sobrepor um tom escuro para melhor legibilidade
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(0, 0, w, h);
+            } else {
+                // Gradiente padrão
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#1a1a2e');
+                grad.addColorStop(0.5, '#16213e');
+                grad.addColorStop(1, '#0f0f1f');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+            }
 
-            // --- MOSAICO ---
+            // --- MOSAICO (opcional, sobre o fundo) ---
             if (bannerData.mosaicoAtivo && bannerData.logoLoaded && bannerData.logoImage) {
                 const logo = bannerData.logoImage;
                 const baseSize = 70;
@@ -687,8 +714,7 @@
             ctx.fillStyle = '#cccccc';
             let textoExibicao = bannerData.mensagemPersonalizada || bannerData.summary || 'Sinopse não disponível.';
             if (bannerData.mensagemPersonalizada) {
-                // Estilo diferente para destacar a mensagem personalizada
-                ctx.fillStyle = '#ffd700'; // dourado
+                ctx.fillStyle = '#ffd700';
                 ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
             }
             if (textoExibicao.length > 180) textoExibicao = textoExibicao.substring(0, 177) + '…';
@@ -773,6 +799,18 @@
         }
 
         // ============================================================
+        //   FUNDO IMAGEM
+        // ============================================================
+        function toggleFundo() {
+            bannerData.fundoImagemAtivo = !bannerData.fundoImagemAtivo;
+            toggleFundoBtn.classList.toggle('active', bannerData.fundoImagemAtivo);
+            toggleFundoBtn.textContent = bannerData.fundoImagemAtivo ? '✅ Ativo' : '🌄 Ativar';
+            fundoStatus.textContent = bannerData.fundoImagemAtivo ? 'Ativado' : 'Desativado';
+            fundoStatus.style.color = bannerData.fundoImagemAtivo ? '#ffd700' : '#888';
+            desenharBanner();
+        }
+
+        // ============================================================
         //   MENSAGEM PERSONALIZADA
         // ============================================================
         function adicionarMensagem() {
@@ -831,6 +869,7 @@
         });
 
         toggleMosaicoBtn.addEventListener('click', toggleMosaico);
+        toggleFundoBtn.addEventListener('click', toggleFundo);
 
         addMsgBtn.addEventListener('click', adicionarMensagem);
         clearMsgBtn.addEventListener('click', limparMensagem);
